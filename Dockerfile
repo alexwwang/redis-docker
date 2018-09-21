@@ -72,15 +72,27 @@ RUN set -ex; \
 	\
 	apt-get purge -y --auto-remove $buildDeps
 
-RUN echo 'echo never > /sys/kernel/mm/transparent_hugepage/enabled' >> /etc/rc.local; \
-    echo 'echo never > /sys/kernel/mm/transparent_hugepage/defrag' >> /etc/rc.local; \
-    echo 'vm.overcommit_memory = 1' >> /etc/sysctl.conf
-
-RUN mkdir /data && chown redis:redis /data
+# RUN apt-get update \
+    # && apt-get install -y procps \
+    # && echo 'echo never > /sys/kernel/mm/transparent_hugepage/enabled' >> /etc/rc.local \
+    # && echo 'echo never > /sys/kernel/mm/transparent_hugepage/defrag' >> /etc/rc.local \
+    # && echo never > /sys/kernel/mm/transparent_hugepage/enabled \
+    # && echo never > /sys/kernel/mm/transparent_hugepage/defrag \
+    # && echo 'vm.overcommit_memory = 1' >> /etc/sysctl.conf \
+    # && sysctl vm.overcommit_memory=1 \
+RUN mkdir /data && chown redis:redis /data \
+    && mkdir /conf
 VOLUME /data
 WORKDIR /data
 
-COPY redis.conf /etc/redis/
+COPY redis.conf /conf/
+# COPY rc-local.service /etc/systemd/system/
+# COPY rc.local /etc/
+RUN chown -R redis:redis /conf
+    # && chmod +x /etc/rc.local \
+    # && systemctl enable rc-local \
+    # && systemctl start rc-local.service \
+    # && apt-get purge -y --auto-remove procps
 COPY docker-entrypoint.sh /usr/local/bin/
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 

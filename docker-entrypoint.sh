@@ -5,7 +5,7 @@ set -e
 # echo never | sudo tee /sys/kernel/mm/transparent_hugepage/defrag
 
 # Updated password using sed
-sed -i "s/requirepass XXXXXXXXXX/requirepass `cat /run/secrets/redis_password`/" /etc/redis/redis.conf
+sed -i "s/requirepass XXXXXXXXXX/requirepass `cat /run/secrets/redis_password`/" /conf/redis.conf
 # first arg is `-f` or `--some-option`
 # or first arg is `something.conf`
 if [ "${1#-}" != "$1" ] || [ "${1%.conf}" != "$1" ]; then
