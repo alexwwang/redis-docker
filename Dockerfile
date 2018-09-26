@@ -1,36 +1,36 @@
-FROM debian:stable-slim
+FROM alexww/debian:stable-slim
 
 # add our user and group first to make sure their IDs get assigned consistently, regardless of whatever dependencies get added
 RUN groupadd -r redis && useradd -r -g redis redis
 
 # grab gosu for easy step-down from root
 # https://github.com/tianon/gosu/releases
-ENV GOSU_VERSION 1.10
-RUN set -ex; \
-	\
-	fetchDeps=" \
-		ca-certificates \
-		dirmngr \
-		gnupg \
-		wget \
-	"; \
-	apt-get update; \
-	apt-get install -y --no-install-recommends $fetchDeps; \
-	rm -rf /var/lib/apt/lists/*; \
-	\
-	dpkgArch="$(dpkg --print-architecture | awk -F- '{ print $NF }')"; \
-	wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch"; \
-	wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch.asc"; \
-	export GNUPGHOME="$(mktemp -d)"; \
-	gpg --keyserver ha.pool.sks-keyservers.net --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4; \
-	gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu; \
-	gpgconf --kill all; \
-	rm -r "$GNUPGHOME" /usr/local/bin/gosu.asc; \
-	chmod +x /usr/local/bin/gosu; \
-	gosu nobody true; \
-	\
-	apt-get purge -y --auto-remove $fetchDeps
-
+# ENV GOSU_VERSION 1.10
+# RUN set -ex; \
+# 	\
+# 	fetchDeps=" \
+# 		ca-certificates \
+# 		dirmngr \
+# 		gnupg \
+# 		wget \
+# 	"; \
+# 	apt-get update; \
+# 	apt-get install -y --no-install-recommends $fetchDeps; \
+# 	rm -rf /var/lib/apt/lists/*; \
+# 	\
+# 	dpkgArch="$(dpkg --print-architecture | awk -F- '{ print $NF }')"; \
+# 	wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch"; \
+# 	wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch.asc"; \
+# 	export GNUPGHOME="$(mktemp -d)"; \
+# 	gpg --keyserver ha.pool.sks-keyservers.net --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4; \
+# 	gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu; \
+# 	gpgconf --kill all; \
+# 	rm -r "$GNUPGHOME" /usr/local/bin/gosu.asc; \
+# 	chmod +x /usr/local/bin/gosu; \
+# 	gosu nobody true; \
+# 	\
+# 	apt-get purge -y --auto-remove $fetchDeps
+ 
 ENV REDIS_VERSION 4.0.11
 ENV REDIS_DOWNLOAD_URL http://download.redis.io/releases/redis-4.0.11.tar.gz
 ENV REDIS_DOWNLOAD_SHA fc53e73ae7586bcdacb4b63875d1ff04f68c5474c1ddeda78f00e5ae2eed1bbb
@@ -70,8 +70,8 @@ RUN set -ex; \
 	\
 	rm -r /usr/src/redis; \
 	\
-	apt-get purge -y --auto-remove $buildDeps
-
+	apt-get purge -y --auto-remove $buildDeps; \
+    \
 # RUN apt-get update \
     # && apt-get install -y procps \
     # && echo 'echo never > /sys/kernel/mm/transparent_hugepage/enabled' >> /etc/rc.local \
@@ -80,8 +80,8 @@ RUN set -ex; \
     # && echo never > /sys/kernel/mm/transparent_hugepage/defrag \
     # && echo 'vm.overcommit_memory = 1' >> /etc/sysctl.conf \
     # && sysctl vm.overcommit_memory=1 \
-RUN mkdir /data && chown redis:redis /data \
-    && mkdir /conf
+    mkdir /data && chown redis:redis /data; \
+    mkdir /conf
 VOLUME /data
 WORKDIR /data
 
@@ -97,4 +97,4 @@ COPY docker-entrypoint.sh /usr/local/bin/
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 
 EXPOSE 6379
-CMD ["redis-server"]
+CMD ["redis-server", "/conf/redis.conf"]
